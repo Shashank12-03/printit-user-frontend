@@ -1,9 +1,11 @@
 import { View, Text, ScrollView, Image, Touchable, TouchableOpacity, ImageSourcePropType } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import icons from '@/constants/icons';
 import images from '@/constants/images';
 import { settings } from '@/constants/data';
+import { getUser } from '@/lib/auth';
+import Avatar from '@/components/avatar';
 
 interface SettingsItemProps {
   icon: ImageSourcePropType;
@@ -12,6 +14,15 @@ interface SettingsItemProps {
   textStyle?: string;
   showArrow?: boolean;
 }
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  image: string;
+  mobile_no: string;
+}
+
 
 const SettingsItem = ({ icon, title, onPress, textStyle, showArrow }: SettingsItemProps) => {
     return (
@@ -24,7 +35,24 @@ const SettingsItem = ({ icon, title, onPress, textStyle, showArrow }: SettingsIt
         </TouchableOpacity>
     );
 }
+
 const Profile = () => {
+  const [user,setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect (()=>{
+    if (loading) {
+      const fetchUser = async () => {
+        const loggedUser = await getUser();
+        setUser(loggedUser.user); 
+        setLoading(false);
+      }
+      fetchUser(); 
+    }
+  },[loading]);
+
+  console.log(user);
+
   return (
     <SafeAreaView className='h-full bg-white'>
       <ScrollView
@@ -38,11 +66,11 @@ const Profile = () => {
         </View>
         <View className='flex flex-row justify-center mt-5'>
           <View className='flex flex-col items-center relative mt-5'>
-            <Image source={images.avatar} className='size-44 relative rounded-full'/>
+          {user?.image!=null && user?.image!="" ? <Image source={{uri: user?.image}} className='size-44 relative rounded-full' /> : <Avatar name={user?.name ?? 'User'} /> }
             <TouchableOpacity className='absolute bottom-11 right-2 '>
               <Image source={icons.edit} className='size-9'/>
             </TouchableOpacity>
-            <Text className='text-2xl font-rubik-bold mt-2'>John Doe | JD</Text>
+            <Text className='text-2xl font-rubik-bold mt-2'>{user?.name}</Text>
           </View>
         </View>
         <View className='flex flex-col mt-5'>

@@ -21,7 +21,6 @@ export default function AppLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(()=>{
-    if (!user) {
       console.log('ineffect');
       const fetchUser = async () => {
         const loggedUser = await getCurrentUserNormal();
@@ -31,7 +30,6 @@ export default function AppLayout() {
         setLoading(false);
       }
       fetchUser();
-    }
   },[isLoggedIn]);
   // console.log('logged ', isLoggedIn);
   // console.log('user ', user);

@@ -28,6 +28,8 @@ const Property = () => {
   const [loading, setLoading] = useState(true);
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
+
+
   const windowHeight = Dimensions.get("window").height;
 
   const mapStyle = [
@@ -79,6 +81,13 @@ const Property = () => {
   const openGoogleMaps = () => {
     const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
     Linking.openURL(url);
+  };
+
+  const navigateToChat = () => {
+    router.push({
+      pathname: "../chat/[id]",
+      params: { id: id, shopName: shop?.shop_name, shopImage: typeof shop?.shop_images[0] === 'string' ? shop.shop_images[0] : undefined }
+    });
   };
 
   if (loading) {
@@ -338,7 +347,7 @@ const Property = () => {
             </Text>
           </View> */}
 
-          <TouchableOpacity className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
+          <TouchableOpacity className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400" onPress={navigateToChat}>
             <Text className="text-white text-lg text-center font-rubik-bold">
               Send documents
             </Text>

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URI = "http://192.168.11.247:8000";
+const API_URI = "https://b4ff-103-27-49-12.ngrok-free.app";
 
 let googleToken: string | null = null; 
 

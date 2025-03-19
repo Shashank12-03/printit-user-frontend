@@ -104,7 +104,9 @@ export default function Index() {
                   <Text className="text-gray-500">Welcome</Text>
                 </View>
               </View>
-              <Image source={icons.bell} className="size-6" />
+              <TouchableOpacity>
+                <Image source={icons.qrcode} className="size-10" />
+              </TouchableOpacity>
             </View>
             <Search />
             <View className="my-5">

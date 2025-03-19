@@ -10,6 +10,7 @@ import noResult from "@/assets/images/no-result.png";
 import icon from "@/assets/images/icon.png";
 import color from "@/assets/images/colors.png";
 import xerox2 from "@/assets/images/xerox2.png";
+import whiteIcon from "@/assets/images/whiteIcon.png";
 export default {
   icon,
   onboarding,
@@ -22,5 +23,6 @@ export default {
   whiteGradient,
   map,
   color,
-  noResult
+  noResult,
+  whiteIcon
 };

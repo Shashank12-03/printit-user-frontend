@@ -12,13 +12,6 @@ import React, { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { getUser } from "@/lib/auth";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  image: string;
-  mobile_no: string;
-}
 
 interface Shops {
   shop_id:string;
@@ -31,8 +24,6 @@ interface Shops {
 
 export default function Explore() {
   // const { user } = useGlobalContext();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [shops, setShops] = useState<Shops[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [locationFetched, setLocationFetched] = useState(false);
@@ -63,19 +54,6 @@ export default function Explore() {
       fetchLocationAndShops();
     }
   }, [locationFetched]);
-
-  useEffect(() => {
-    if (!user) {
-      console.log('ineffect index user');
-      const fetchUser = async () => {
-        const loggedUser = await getUser();
-        setUser(loggedUser.user); 
-        setIsLoggedIn(true);
-        setLoading(false);
-      }
-      fetchUser();
-    }
-  }, [isLoggedIn]);
 
   const handleCardPress = (id: string) => router.push(`/shops/${id}`);
   console.log(loading);

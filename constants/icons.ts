@@ -33,6 +33,9 @@ import location from "@/assets/icons/location.png";
 import edit from "@/assets/icons/edit.png";
 import cash from "@/assets/icons/cash.png";
 import online from "@/assets/icons/online.png";
+import document from "@/assets/icons/document.png";
+import attachment from "@/assets/icons/attachment.png";
+import qrcode from "@/assets/icons/qrcode.png";
 
 export default {
   google,
@@ -70,4 +73,7 @@ export default {
   edit,
   cash,
   online,
+  document,
+  attachment,
+  qrcode
 };
