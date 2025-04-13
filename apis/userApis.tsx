@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URI = "https://b4ff-103-27-49-12.ngrok-free.app";
+const API_URI = "http://192.168.11.247:8000";
 
 let googleToken: string | null = null; 
 
@@ -29,6 +29,7 @@ export const signInWithEmailAndPassword = async (email: string, password: string
     try {
         const response = await axios.post(`${API_URI}/user/email-login`, { email, password });
         if (response.status !== 200) {
+            console.error('Error fetching credentials:', response.data.message);
             console.error('Error fetching credentials:', response.statusText);
             return false;
         }
@@ -121,7 +122,7 @@ export const getCurrentUserNormal = async () => {
         accessToken = await AsyncStorage.getItem('accessToken');
     }
     if (!accessToken) {
-        console.error('Google token is not set');
+        console.error('access token is not set');
         return null;
     }
     try {
@@ -130,6 +131,7 @@ export const getCurrentUserNormal = async () => {
               Authorization: `Bearer ${accessToken}`
             },
         });
+        
         await AsyncStorage.setItem('isLoggedIn', 'true');
         await AsyncStorage.setItem('user',JSON.stringify(response.data));
         return response.data;
@@ -200,3 +202,168 @@ export const getShopById = async (id: number) => {
     }
 };
 
+export const signOut = async () => {
+    try {
+        console.log('Signing out...');
+        let refreshToken;
+        let accessToken;
+        if (Platform.OS === 'web') {
+            accessToken = localStorage.getItem('accessToken');
+            refreshToken = localStorage.getItem('refreshToken');
+        }
+        else {
+            accessToken = await AsyncStorage.getItem('accessToken');
+            refreshToken = await AsyncStorage.getItem('refreshToken');
+        }
+        const response = await axios.post(`${API_URI}/user/sign-out`, {
+            refresh_token: refreshToken
+        }, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error signing out:', response.statusText);
+            return null;
+        }
+        if (Platform.OS === 'web') {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+        } else {
+            await AsyncStorage.removeItem('accessToken');
+            await AsyncStorage.removeItem('refreshToken');
+        }
+        await AsyncStorage.removeItem('isLoggedIn');
+        await AsyncStorage.removeItem('user');
+        console.log('Successfully signed out');
+        return true;
+    } catch (error) {
+        console.error('Error signing out:', error);
+        return null;
+    }
+}
+
+export const addUserDetails = async (data:any) => {
+    let accessToken;
+    if (Platform.OS === 'web') {
+        accessToken = localStorage.getItem('accessToken');
+    }
+    else {
+        accessToken = await AsyncStorage.getItem('accessToken');
+    }
+    try {
+        const response = await axios.post(`${API_URI}/user/add-user-details`, data, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error adding user details:', response.statusText);
+            return null;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error adding user details:', error);
+        return null;
+    }
+}
+
+export const addShopToFavourite = async (shop_id: number) => {
+    let accessToken;
+    if (Platform.OS === 'web') {
+        accessToken = localStorage.getItem('accessToken');
+    }
+    else {
+        accessToken = await AsyncStorage.getItem('accessToken');
+    }
+    try {
+        const response = await axios.post(`${API_URI}/interaction/add-favourite-shop`, { shop_id }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error adding shop to favourites:', response.statusText);
+            return null;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error adding shop to favourites:', error);
+        return null;
+    }
+}
+
+export const getFavourtiteShops = async () => {
+    let accessToken;
+    if (Platform.OS === 'web') {
+        accessToken = localStorage.getItem('accessToken');
+    }
+    else {
+        accessToken = await AsyncStorage.getItem('accessToken');
+    }
+    try {
+        const response = await axios.get(`${API_URI}/interaction/get-favourite-shops`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error fetching favourite shops:', response.statusText);
+            return null;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching favourite shops:', error);
+        return null;
+    }
+}
+
+export const getHistory = async () => {
+    let accessToken;
+    if (Platform.OS === 'web') {
+        accessToken = localStorage.getItem('accessToken');
+    }
+    else {
+        accessToken = await AsyncStorage.getItem('accessToken');
+    }
+    try {
+        const response = await axios.get(`${API_URI}/interaction/get-user-history`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error fetching history:', response.statusText);
+            return null;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        return null;
+    }
+}
+
+export const giveRating = async (shop_id: number, rating: number) => {
+    let accessToken;
+    if (Platform.OS === 'web') {
+        accessToken = localStorage.getItem('accessToken');
+    }
+    else {
+        accessToken = await AsyncStorage.getItem('accessToken');
+    }
+    try {
+        const response = await axios.post(`${API_URI}/interaction/rate-shop/${shop_id}`, { rating }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        if (response.status !== 200) {
+            console.error('Error giving rating:', response.statusText);
+            return null;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error giving rating:', error);
+        return null;
+    }
+}

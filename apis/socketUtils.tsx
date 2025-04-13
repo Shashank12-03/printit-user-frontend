@@ -22,7 +22,7 @@ interface Message {
 const SocketUrl ="http://192.168.11.247:5000";
 
 export const connectSocket = (
-) => {
+) => {-
   console.log('in connection socket');
   socket = io( SocketUrl, {
     query: { userType: 'user' },

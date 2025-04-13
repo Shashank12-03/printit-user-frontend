@@ -16,34 +16,37 @@ interface User {
 
 
 export default function AppLayout() {
-  // const { loading, isLoggedIn } = useGlobalContext();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-  useEffect(()=>{
-      console.log('ineffect');
-      const fetchUser = async () => {
-        const loggedUser = await getCurrentUserNormal();
-        // console.log(loggedUser);
-        setUser(loggedUser); 
-        setIsLoggedIn(true);
-        setLoading(false);
-      }
+  const [authState, setAuthState] = useState({
+    user: null,
+    isLoggedIn: false,
+    loading: true,
+  });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const loggedUser = await getCurrentUserNormal();
+      setAuthState({
+        user: loggedUser,
+        isLoggedIn: !!loggedUser,
+        loading: false,
+      });
+    };
+
+    if (authState.loading) {
       fetchUser();
-  },[isLoggedIn]);
-  // console.log('logged ', isLoggedIn);
-  // console.log('user ', user);
-  // console.log('loading ', loading);
-  if (loading) {
+    }
+  }, [authState.loading]);
+
+  if (!authState.isLoggedIn && !authState.loading) {
+    return <Redirect href="/sign-in" />;
+  }
+
+  if (authState.loading) {
     return (
       <SafeAreaView className="bg-white h-full flex justify-center items-center">
         <ActivityIndicator className="text-primary-300" size="large" />
       </SafeAreaView>
     );
-  }
-
-  if (!isLoggedIn) {
-    return <Redirect href="/sign-in" />;
   }
 
   return <Slot />;

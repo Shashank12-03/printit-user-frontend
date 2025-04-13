@@ -4,13 +4,14 @@ import Search from "@/components/search";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 // import { useGlobalContext } from "@/lib/global-provider";
-import { getCurrentUserNormal, getShops } from "@/apis/userApis";
+import { getCurrentUserNormal, getFavourtiteShops, getShops } from "@/apis/userApis";
 import { Link, router } from "expo-router";
 import { Text, View, Image, TouchableOpacity, FlatList, ActivityIndicator, Alert, ImageSourcePropType } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { getUser } from "@/lib/auth";
+import Avatar from "@/components/avatar";
 
 interface User {
   id: string;
@@ -35,8 +36,9 @@ export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [shops, setShops] = useState<Shops[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [favShopLoading, setfavShopLoading] = useState(true);
   const [locationFetched, setLocationFetched] = useState(false);
-
+  const [favouriteShops, setFavouriteShops] = useState<Shops[] | null>(null);
   useEffect(() => {
     const fetchLocationAndShops = async () => {
       try {
@@ -50,6 +52,9 @@ export default function Index() {
 
         const location = await Location.getCurrentPositionAsync({});
         const shopsData = await getShops(location.coords.latitude, location.coords.longitude);
+        const favouriteShops = await getFavourtiteShops();
+        setFavouriteShops(favouriteShops);
+        setfavShopLoading(false);
         setLocationFetched(true);
         setShops(shopsData);
       } catch (error) {
@@ -98,33 +103,42 @@ export default function Index() {
           <View className="px-5">
             <View className="flex flex-row items-center justify-between mt-5">
               <View className="flex flex-row items-center">
-                <Image source={user?.image ? { uri: user.image } : images.avatar} className="size-12 rounded-full" />
+                <TouchableOpacity onPress={() => router.push("/profile")}>
+                  {user?.image ? <Image source={{ uri: user.image }} className="size-12 rounded-full" /> : <Avatar name={user?.name || ""}/>}
+                </TouchableOpacity>
                 <View className="flex flex-col items-start ml-2 justify-center">
                   <Text className="font-bold text-lg">Hello, {user?.name}</Text>
                   <Text className="text-gray-500">Welcome</Text>
                 </View>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/scanner")}>
                 <Image source={icons.qrcode} className="size-10" />
               </TouchableOpacity>
             </View>
             <Search />
             <View className="my-5">
               <View className="flex flex-row items-center justify-between">
-                <Text className="text-xl font-rubik-bold text-black-300">Recent</Text>
+                <Text className="text-xl font-rubik-bold text-black-300">Favourite</Text>
                 <TouchableOpacity>
                   <Text className="text-base font-rubik-bold">View all</Text>
                 </TouchableOpacity>
               </View>
-              <FlatList
-                data={shops}
-                renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.shop_id)} />}
-                keyExtractor={(item) => item.shop_id.toString()}
-                horizontal
-                bounces={false}
-                showsHorizontalScrollIndicator={false}
-                contentContainerClassName="flex gap-5 mt-5"
-              />
+              {favShopLoading ? (
+                <ActivityIndicator size="large" className="text-primary-300" />
+              ) : !favouriteShops || favouriteShops.length === 0 ? (
+                <Text className="flex text-center text-xl font-rubik-medium text-black-300 mt-5 mb-5">No favourite shops for now</Text>
+              ) : (
+                <FlatList
+                  data={favouriteShops}
+                  renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.shop_id)} />}
+                  keyExtractor={(item) => item.shop_id.toString()}
+                  horizontal
+                  bounces={false}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerClassName="flex gap-5 mt-5"
+                />
+              )}
+              
             </View>
             <View className="flex flex-row items-center justify-between">
               <Text className="text-xl font-rubik-bold text-black-300">Shops</Text>

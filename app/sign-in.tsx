@@ -6,7 +6,7 @@ import icons from '@/constants/icons';
 import React, { useEffect, useState, useRef } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import SecureStore from 'expo-secure-store';
-import { sendTokenToBackend, signInWithEmailAndPassword, getToken } from '@/apis/userApis';
+import { sendTokenToBackend, signInWithEmailAndPassword, getToken, getCurrentUserNormal } from '@/apis/userApis';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 // import { useGlobalContext } from '@/lib/global-provider';
@@ -18,23 +18,19 @@ const GOOGLE_WEBSITE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEBSITE_CLIENT_I
 WebBrowser.maybeCompleteAuthSession();
 
 const SignIn = () => {
-  const [isLogged,setIsLogged] = useState(false);
-  // console.log("loading ", loading);
-  
+  console.log('SignIn component rendered');
+  console.log('Google Android Client ID:', GOOGLE_Android_CLIENT_ID);
+  console.log('Google Website Client ID:', GOOGLE_WEBSITE_CLIENT_ID);
   useEffect(() => {
     const checkLoggedIn = async () => {
-      const loggedIn = await AsyncStorage.getItem('isLoggedIn');
-      if (loggedIn === 'true') {
-        setIsLogged(true);
+      const user = await getCurrentUserNormal();
+      if (user) {
+        router.push('/');
       }
     };
     checkLoggedIn();
-  }, [isLogged]);
+  }, []);
 
-  if (isLogged) {
-    console.log('redirecting');
-    return <Redirect href='/'/>
-  }
 
   const [authLoading, setAuthLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -42,8 +38,8 @@ const SignIn = () => {
 
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_Android_CLIENT_ID,
-    webClientId: GOOGLE_WEBSITE_CLIENT_ID,
+    androidClientId:GOOGLE_Android_CLIENT_ID,
+    webClientId:GOOGLE_WEBSITE_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -84,6 +80,16 @@ const SignIn = () => {
         }
       }
 
+      const user = await getCurrentUserNormal();
+      console.log('User Data:', user);
+  
+      if (!user?.name || !user?.mobile_no || !user?.profile_photo) {
+        // Redirect to onboarding page if user is new
+        router.push("/onboarding");
+      } else {
+        router.push("/");
+      }
+
       // await refetch({});
       setAuthLoading(false);
     } else {
@@ -109,13 +115,13 @@ const SignIn = () => {
     setAuthLoading(true);
     try {
       const responseData = await signInWithEmailAndPassword(email, password);
-
+  
       if (!responseData) {
         console.error('Invalid response from backend');
         setAuthLoading(false);
         return;
       }
-
+  
       const tokenResponse = await getToken(email, password);
       console.log('Token Response:', tokenResponse);
       if (!tokenResponse) {
@@ -123,17 +129,29 @@ const SignIn = () => {
         setAuthLoading(false);
         return;
       }
-
+  
+      // Save tokens to AsyncStorage
       if (Platform.OS === 'web') {
         localStorage.setItem('accessToken', tokenResponse.access);
         localStorage.setItem('refreshToken', tokenResponse.refresh);
       } else {
-        console.log('Setting SecureStore'); 
+        console.log('Setting SecureStore');
         await AsyncStorage.setItem('accessToken', tokenResponse.access);
         await AsyncStorage.setItem('refreshToken', tokenResponse.refresh);
       }
-
-      // await refetch({});
+  
+      // Check if the user is new (e.g., missing required fields)
+      const user = await getCurrentUserNormal();
+      console.log('User Data:', user);
+  
+      if (!user?.name || !user?.mobile_no || !user?.profile_photo) {
+        // Redirect to onboarding page if user is new
+        router.push("/onboarding");
+      } else {
+        // Redirect to the main app if user is complete
+        router.push("/");
+      }
+  
       setAuthLoading(false);
     } catch (error) {
       console.error('Email/Password Sign-In Error:', error);

@@ -6,7 +6,8 @@ import images from '@/constants/images';
 import { settings } from '@/constants/data';
 import { getUser } from '@/lib/auth';
 import Avatar from '@/components/avatar';
-
+import { Redirect, router } from 'expo-router';
+import { signOut as apiSignOut } from '@/apis/userApis';
 interface SettingsItemProps {
   icon: ImageSourcePropType;
   title: string;
@@ -51,8 +52,20 @@ const Profile = () => {
     }
   },[loading]);
 
-  console.log(user);
+  const handleSignOut = async () => {
+    const result = await apiSignOut(); // Call the imported signOut function
+    if (result) {
+      console.log('User signed out');
+      router.push('/sign-in'); // Navigate to the sign-in page
+    } else {
+      console.error('Failed to sign out');
+    }
+  };
 
+  const getHistory = () => {
+    
+  }
+  
   return (
     <SafeAreaView className='h-full bg-white'>
       <ScrollView
@@ -67,14 +80,17 @@ const Profile = () => {
         <View className='flex flex-row justify-center mt-5'>
           <View className='flex flex-col items-center relative mt-5'>
           {user?.image!=null && user?.image!="" ? <Image source={{uri: user?.image}} className='size-44 relative rounded-full' /> : <Avatar name={user?.name ?? 'User'} /> }
-            <TouchableOpacity className='absolute bottom-11 right-2 '>
-              <Image source={icons.edit} className='size-9'/>
-            </TouchableOpacity>
+          <TouchableOpacity
+            className="absolute bottom-11 right-2"
+            onPress={() => router.push({ pathname: "/onboarding", params: { isEdit: "true" } })}
+          >
+            <Image source={icons.edit} className="size-9" />
+          </TouchableOpacity>
             <Text className='text-2xl font-rubik-bold mt-2'>{user?.name}</Text>
           </View>
         </View>
         <View className='flex flex-col mt-5'>
-          <SettingsItem icon={icons.calendar} title='My transfers'/>
+          <SettingsItem icon={icons.calendar} onPress={getHistory} title='My transfers'/>
           <SettingsItem icon={icons.wallet} title='My Payments'/>
         </View>
         <View className='flex flex-col mt-5 border-t pt-5 border-primary-200'>
@@ -83,7 +99,7 @@ const Profile = () => {
           ))}
         </View>
         <View className='flex flex-col mt-5 border-t pt-5 border-primary-200'>
-          <SettingsItem icon={icons.logout} title='Logout' textStyle='text-danger' showArrow={false} />
+          <SettingsItem icon={icons.logout} onPress={handleSignOut} title='Logout' textStyle='text-danger' showArrow={false} />
         </View>
       </ScrollView>
     </SafeAreaView>

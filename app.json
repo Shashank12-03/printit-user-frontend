@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000"
       },
       "package": "com.shashank1203.printit"
     },
@@ -59,6 +59,7 @@
       "eas": {
         "projectId": "9cf31275-42c5-4cdf-9b2d-cb2ada444e0e"
       }
-    }
+    },
+    "owner": "shashank1203"
   }
 }

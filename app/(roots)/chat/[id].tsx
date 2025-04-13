@@ -7,6 +7,7 @@ import PDFPreview from '@/components/pdf-view';
 import images from '@/constants/images';
 import { connectSocket, handleJoin,sendFile } from "@/apis/socketUtils";
 import { getUser } from '@/lib/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 interface Message {
@@ -28,11 +29,39 @@ interface User {
 }
 
 export default function ChatScreen() {
+  
   const { id, shopName, shopImage } = useLocalSearchParams<{ id: string; shopName: string; shopImage: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [joinUser, setJoinUser] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const saveMessagesToStorage = async (messages: Message[]) => {
+    try {
+      await AsyncStorage.setItem(`messages_${id}`, JSON.stringify(messages));
+    } catch (error) {
+      console.error('Error saving messages to storage:', error);
+    }
+  };
+
+  const loadMessagesFromStorage = async () => {
+    try {
+      const storedMessages = await AsyncStorage.getItem(`messages_${id}`);
+      if (storedMessages) {
+        const parsedMessages = JSON.parse(storedMessages).map((message: Message) => ({
+          ...message,
+          timestamp: new Date(message.timestamp), // Convert timestamp back to Date
+        }));
+        setMessages(parsedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading messages from storage:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadMessagesFromStorage();
+  }, [id]);
 
   const pickDocument = async () => {
     try {
@@ -40,19 +69,19 @@ export default function ChatScreen() {
         type: '*/*',
         multiple: true,
       });
-  
+
       if (result.assets) {
         result.assets.forEach(async (asset) => {
           try {
             const response = await fetch(asset.uri);
             const blob = await response.blob();
-  
+
             const reader = new FileReader();
             reader.readAsDataURL(blob);
-  
+
             reader.onloadend = () => {
-              const fileData = reader.result; 
-  
+              const fileData = reader.result;
+
               const newMessage: Message = {
                 id: Math.random().toString(),
                 type: 'file',
@@ -62,9 +91,13 @@ export default function ChatScreen() {
                 timestamp: new Date(),
                 sender: 'user',
               };
-  
-              setMessages((prev) => [...prev, newMessage]);
-  
+
+              setMessages((prev) => {
+                const updatedMessages = [newMessage, ...prev];
+                saveMessagesToStorage(updatedMessages);
+                return updatedMessages;
+              });
+
               if (id && user?.id) {
                 sendFile(fileData, { name: asset.name, size: asset.size ?? 0 }, id, user.id);
               } else {
@@ -80,9 +113,8 @@ export default function ChatScreen() {
       console.error('Error picking document:', err);
     }
   };
-  
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log('socket connection useeffect');
     connectSocket();
     if (!joinUser) {
@@ -90,37 +122,37 @@ export default function ChatScreen() {
         const joinUser = await handleJoin();
         console.log(joinUser);
         setJoinUser(true);
-      }
+      };
       joinSocket();
     }
-  },[joinUser]);
-  console.log(joinUser);
+  }, [joinUser]);
 
   useEffect(() => {
     if (!user) {
       const fetchUser = async () => {
         const loggedUser = await getUser();
-        setUser(loggedUser.user); 
+        setUser(loggedUser.user);
         setIsLoggedIn(true);
-      }
+      };
       fetchUser();
     }
   }, [isLoggedIn]);
-  
 
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.sender === 'user';
     return (
       <View className={`max-w-[80%] mx-4 my-1 ${isUser ? 'self-end' : 'self-start'}`}>
         {item.type === 'file' && (
-          <PDFPreview 
-            fileName={item.fileName || 'Unknown'} 
-            fileSize={`${((item.fileSize ?? 0) / 1024).toFixed(1)} KB`} 
+          <PDFPreview
+            fileName={item.fileName || 'Unknown'}
+            fileSize={`${((item.fileSize ?? 0) / 1024).toFixed(1)} KB`}
             onView={() => console.log('View PDF:', item.content)}
           />
         )}
         <Text className={`text-xs text-textSecondary mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
-          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {item.timestamp
+            ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : 'Unknown Time'}
         </Text>
       </View>
     );
@@ -130,7 +162,7 @@ export default function ChatScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1">
         <View className="flex-row items-center justify-between p-4 border-b border-border mt-5">
-          <View className='flex flex-row items-center px-2 mr-2'>
+          <View className="flex flex-row items-center px-2 mr-2">
             <TouchableOpacity onPress={() => router.back()}>
               <Image source={icons.backArrow} className="w-7 h-9" />
             </TouchableOpacity>
@@ -140,39 +172,34 @@ export default function ChatScreen() {
             <Text className="text-xl font-rubik-bold">{shopName}</Text>
             <Text className="text-s">Online</Text>
           </View>
-          <View className='flex-1 flex-row justify-end'>
+          <View className="flex-1 flex-row justify-end">
             <TouchableOpacity onPress={() => console.log('share button')}>
               <Image source={icons.send} className="w-8 h-8 mr-2" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Messages */}
-        {/* <ImageBackground source={images.whiteIcon} className='flex-1 items-center jusyify-center size-full relative' resizeMode="cover"> */}
-          <FlatList
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
-            // contentContainerClassName='bg-primary-100'
-            inverted={messages.length > 0}
-          />
-        {/* </ImageBackground> */}
+        <FlatList
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          inverted={messages.length > 0}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-          <View className='flex-row items-center justify-center border-black'>
+          <View className="flex-row items-center justify-center border-black">
             <Text className="flex-1 justify-center text-lg text-center text-primary-300 font-rubik-medium ml-4">
-              Select files and send 
+              Select files and send
             </Text>
-            <View className='flex-1 flex-row items-center justify-end border border-white bg-primary-300 m-4 py-2 pr-6'>
-              <TouchableOpacity
-                onPress={pickDocument}
-                className="py-3 items-center"
-              >
-                <View className='flex items-center justify-center mr-8'>
-                  <Text className='flex text-white items-center justify-center text-center text-lg font-rubik-medium'>Select files</Text>
+            <View className="flex-1 flex-row items-center justify-end border border-white bg-primary-300 m-4 py-2 pr-6">
+              <TouchableOpacity onPress={pickDocument} className="py-3 items-center">
+                <View className="flex items-center justify-center mr-8">
+                  <Text className="flex text-white items-center justify-center text-center text-lg font-rubik-medium">
+                    Select files
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
