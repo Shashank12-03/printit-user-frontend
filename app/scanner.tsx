@@ -32,15 +32,9 @@ export default function ScannerScreen() {
     setScanned(true);
 
     try {
-      const parsedData = JSON.parse(data); 
-      router.replace({
-        pathname: `/shops/[id]`,
-        params: {
-          id: parsedData.id,
-          shopName: parsedData.shopName,
-          shopImage: parsedData.shopImage,
-        },
-      });
+      console.log('Scanned data:', typeof(data));
+      const id = JSON.parse(data);
+      router.push(`/shops/${id}`);
     } catch (error) {
       console.error('Invalid QR Code', error);
       // Show error message in UI instead of Alert

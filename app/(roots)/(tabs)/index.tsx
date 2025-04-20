@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { getUser } from "@/lib/auth";
 import Avatar from "@/components/avatar";
+import AvatarMain from "@/components/avatarMain";
 
 interface User {
   id: string;
@@ -22,12 +23,20 @@ interface User {
 }
 
 interface Shops {
-  shop_id:number;
-  shopImages:ImageSourcePropType[];
-  shop_rating:number; 
-  shop_name:string;
-  shop_address:string;
+  id:number;
+  images__images:ImageSourcePropType[];
+  rating:number; 
+  name:string;
+  location__address:string;
   distance_km:number;
+}
+
+interface FavouriteShops {
+  shop__id:number;
+  shop__images__images:ImageSourcePropType[];
+  shop__rating:number; 
+  shop__name:string;
+  shop__location__address:string;
 }
 
 export default function Index() {
@@ -38,7 +47,7 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [favShopLoading, setfavShopLoading] = useState(true);
   const [locationFetched, setLocationFetched] = useState(false);
-  const [favouriteShops, setFavouriteShops] = useState<Shops[] | null>(null);
+  const [favouriteShops, setFavouriteShops] = useState<FavouriteShops[] | null>(null);
   useEffect(() => {
     const fetchLocationAndShops = async () => {
       try {
@@ -89,8 +98,8 @@ export default function Index() {
     <SafeAreaView className="bg-white h-full">
       <FlatList
         data={shops}
-        renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.shop_id)} />}
-        keyExtractor={(item) => item.shop_id.toString()}
+        renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.id)} />}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
@@ -104,7 +113,7 @@ export default function Index() {
             <View className="flex flex-row items-center justify-between mt-5">
               <View className="flex flex-row items-center">
                 <TouchableOpacity onPress={() => router.push("/profile")}>
-                  {user?.image ? <Image source={{ uri: user.image }} className="size-12 rounded-full" /> : <Avatar name={user?.name || ""}/>}
+                  {user?.image ? <Image source={{ uri: user.image }} className="size-12 rounded-full" /> : <AvatarMain name={user?.name || ""}/>}
                 </TouchableOpacity>
                 <View className="flex flex-col items-start ml-2 justify-center">
                   <Text className="font-bold text-lg">Hello, {user?.name}</Text>
@@ -130,8 +139,8 @@ export default function Index() {
               ) : (
                 <FlatList
                   data={favouriteShops}
-                  renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.shop_id)} />}
-                  keyExtractor={(item) => item.shop_id.toString()}
+                  renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.shop__id)} />}
+                  keyExtractor={(item) => item.shop__id.toString()}
                   horizontal
                   bounces={false}
                   showsHorizontalScrollIndicator={false}

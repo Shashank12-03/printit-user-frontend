@@ -226,27 +226,23 @@ const Property = () => {
 
             {shop?.shop_facilites && Object.keys(shop.shop_facilites).length > 0 && (
               <View className="flex flex-wrap items-start justify-start mt-2 gap-5">
-                {Object.entries(shop.shop_facilites).map(([facility, value], index) => {
-                  const facilityData = facilities.find((f) => f.title === facility);
-
-                  return (
-                    <View
-                      key={index}
-                      className="flex flex-row items-center space-x-3 bg-primary-100 px-3 py-2 rounded-lg"
-                    >
-                      <View className="size-10 bg-white rounded-full flex items-center justify-center">
-                        <Image
-                          source={facilityData ? facilityData.icon : icons.info}
-                          className="size-6"
-                          resizeMode="contain"
-                        />
-                      </View>
-                      <Text className="text-black-300 text-sm font-rubik">
-                        {facility} - ₹{value}
-                      </Text>
+                {Object.entries(shop.shop_facilites).map(([facilityName, price], index) => (
+                  <View
+                    key={index}
+                    className="flex flex-row items-center space-x-3 bg-primary-100 px-3 py-2 rounded-lg"
+                  >
+                    <View className="size-10 bg-white rounded-full flex items-center justify-center">
+                      <Image
+                        source={icons.info} // Replace with an appropriate icon if available
+                        className="size-6"
+                        resizeMode="contain"
+                      />
                     </View>
-                  );
-                })}
+                    <Text className="text-black-300 text-sm font-rubik">
+                      {facilityName} - ₹{price}
+                    </Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URI = "http://192.168.11.247:8000";
+const API_URI = "http://192.168.14.135:8000";
 
 let googleToken: string | null = null; 
 
@@ -302,7 +302,7 @@ export const getFavourtiteShops = async () => {
         accessToken = await AsyncStorage.getItem('accessToken');
     }
     try {
-        const response = await axios.get(`${API_URI}/interaction/get-favourite-shops`, {
+        const response = await axios.get(`${API_URI}/interactions/get-favourite-shops`, {
             headers: {
                 Authorization: `Bearer ${accessToken}`
             },
@@ -311,7 +311,8 @@ export const getFavourtiteShops = async () => {
             console.error('Error fetching favourite shops:', response.statusText);
             return null;
         }
-        return response.data;
+        const favouriteShops = response.data.favourites;
+        return favouriteShops;
     } catch (error) {
         console.error('Error fetching favourite shops:', error);
         return null;

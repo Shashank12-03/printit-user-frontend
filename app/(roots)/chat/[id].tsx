@@ -99,7 +99,7 @@ export default function ChatScreen() {
               });
 
               if (id && user?.id) {
-                sendFile(fileData, { name: asset.name, size: asset.size ?? 0 }, id, user.id);
+                sendFile(fileData, { name: asset.name, size: asset.size ?? 0 }, id, {"userId":user.id, "userName":user.name, "userImage":user.image});
               } else {
                 console.error('Error: Missing id or user id');
               }
@@ -120,7 +120,7 @@ export default function ChatScreen() {
     if (!joinUser) {
       const joinSocket = async () => {
         const joinUser = await handleJoin();
-        console.log(joinUser);
+        console.log('joinUser', joinUser);
         setJoinUser(true);
       };
       joinSocket();

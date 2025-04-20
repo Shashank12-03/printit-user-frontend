@@ -19,7 +19,7 @@ interface Message {
   timestamp: Date;
   sender: 'user' | 'shop';
 }
-const SocketUrl ="http://192.168.11.247:5000";
+const SocketUrl ="http://192.168.14.135:5000";
 
 export const connectSocket = (
 ) => {-
@@ -68,10 +68,10 @@ export const sendFile = (
   fileData: string | ArrayBuffer | null,
   file: { name: string; size: number },
   shopId: string,
-  userId: string
+  user: {userId:string, userName:string, userImage:string}
 ) => {
   if (socket) {
-    console.log('Sending file:', file.name, 'from user:', userId, 'to shop:', shopId);
+    console.log('Sending file:', file.name, 'from user:', user.userName, 'to shop:', shopId);
     socket.emit('sendFile', {
       id: new Date().toISOString(),
       type: 'file',
@@ -82,7 +82,7 @@ export const sendFile = (
       sender: 'user',
       file: fileData,
       shopId,
-      userId,
+      user,
     });
   }
 };
